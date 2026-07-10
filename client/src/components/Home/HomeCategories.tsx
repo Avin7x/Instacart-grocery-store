@@ -1,4 +1,3 @@
-import { Section } from "lucide-react"
 import { categoriesData } from "../../assets/assets"
 import { Link } from "react-router-dom"
 
