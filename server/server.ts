@@ -2,6 +2,8 @@ import express, { NextFunction, Request, Response } from "express";
 import "dotenv/config";
 import cors from "cors";
 import authRouter from "./routes/authRoute.js";
+import productRouter from "./routes/productRoute.js";
+import uploadRouter from "./routes/uploadRoutes.js";
 
 const app = express();
 
@@ -16,6 +18,8 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.use('/api/auth', authRouter);
+app.use('/api/products', productRouter);
+app.use('/api/upload', uploadRouter);
 
 // error handling
 app.use((error: any, req: Request, res: Response, next: NextFunction) => {

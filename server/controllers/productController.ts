@@ -65,4 +65,20 @@ export const getProductById = async (req: Request, res: Response) => {
     return res.status(200).json({product: productWithDiscount});
 }
 
-// POST /api/products
+// POST /api/products/create
+export const createProduct = async (req: Request, res: Response) => {
+    const product = await prisma.product.create({data: req.body});
+    return res.status(201).json({product});
+}
+
+// PUT /api/products:id
+export const updateProduct = async (req: Request, res: Response) => {
+    const product = await prisma.product.update({where: {id: req.params.id as string }, data: req.body});
+    return res.status(200).json({product});
+}
+
+// DELETE /api/products:id
+export const deleteProduct = async (req: Request, res: Response) => {
+    const product = await prisma.product.delete({where: {id: req.params.id as string }});
+    return res.status(200).json({message: "Deleted"});
+}
