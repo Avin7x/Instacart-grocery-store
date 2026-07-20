@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import { prisma } from "../config/prisma.js";
+import { timeStamp } from "node:console";
 
 // Create order
-// POST /api/orders
+// POST /api/orders/
 export const createOrder = async (req: Request, res: Response) => {
   const { items, shippingAddress, paymentMethod } = req.body;
 
@@ -60,7 +61,7 @@ export const createOrder = async (req: Request, res: Response) => {
     }
   });
 
-  const subtotal = items.reduce((sum: number, item: any) => sum + item.price * item.quantity * 0);
+  const subtotal = items.reduce((sum: number, item: any) => sum + item.price * item.quantity , 0);
   const deliveryFee = subtotal > 20 ? 0: 1.99;
   const tax = Math.round((subtotal * 0.08 )* 100)/100;
   const total = Math.round((subtotal + deliveryFee + tax) * 100) / 100;
@@ -98,4 +99,97 @@ export const createOrder = async (req: Request, res: Response) => {
 };
 
 // Get user's order
-// GET /api/orders
+// GET /api/orders/
+export const getUserOrders = async (req: Request, res: Response) => {
+  const { status } = req.query;
+
+  const where: any = {
+      userId: req.user!.id,
+      NOT: [{paymentMethod: "card", isPaid: false}]
+
+  }
+  if(status && status !== "all"){
+    where.status = status;
+  }
+
+  const orders = await prisma.order.findMany({
+    where,
+    include: {deliveryPartner: {select: {name: true, phone: true}}},
+    orderBy: {createdAt: "desc"}
+
+  });
+
+  return res.json({orders});
+}
+
+// Get single order
+// GET /api/orders/:id
+export const getOrder = async (req: Request, res: Response) => {
+
+  const order = await prisma.order.findFirst({
+    where: {id: req.params.id as string, userId: req.user!.id},
+    include: {deliveryPartner: {select: {name: true, phone: true, avatar: true, vehicleType: true}}}
+  });
+
+  if(!order){
+    return res.status(404).json({message: "Order not found"});
+  }
+
+  return res.json({order});
+
+}
+
+// Update order status (admin)
+// PUT /api/orders/:id/status
+export const updateOrderStatus = async (req: Request, res: Response) => {
+  const { status, note } = req.body;
+  const order = await prisma.order.findUnique({
+    where: {id: req.params.id as string}
+  });
+
+  if(!order) {
+    return res.status(404).json({message: "Order not found"});
+  }
+
+  const history = (Array.isArray(order.statusHistory) ? order.statusHistory : []) as any[];
+  history.push({status, note: note || `Order ${status.toLowerCase()}`, timestamp: new Date()});
+
+  const updatedOrder = await prisma.order.update({
+    where: { id: req.params.id as string },
+    data: { statusHistory: history}
+  })
+
+  return res.json({order: updatedOrder});
+
+}
+
+// Get all orders (admin)
+// GET /api/orders/all
+export const getAllOrders = async (req: Request, res: Response) => {
+  
+  const orders = await prisma.order.findMany({
+    where: {NOT: [{paymentMethod: "card", isPaid: false}]},
+    include: {user: {select: {name: true, email: true}}, deliveryPartner: {select: {name: true, phone: true, email: true}}},
+    orderBy: {createdAt: "desc"}
+
+  });
+
+  return res.json({orders});
+}
+
+// Get order location
+// GET /api/order/:id/location
+
+export const gerOrderLocation = async (req: Request, res: Response) => {
+  const order = await prisma.order.findFirst({
+    where: {id: req.params.id as string, userId: req.user!.id},
+    select: {liveLocation: true, status: true}
+  });
+
+  if(!order) {
+    return res.status(404).json({message: "Order not found"});
+  }
+
+  return res.json({liveLocation: order.liveLocation, status: order.status});
+  
+}

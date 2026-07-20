@@ -4,6 +4,9 @@ import cors from "cors";
 import authRouter from "./routes/authRoute.js";
 import productRouter from "./routes/productRoute.js";
 import uploadRouter from "./routes/uploadRoutes.js";
+import orderRouter from "./routes/orderRoute.js";
+import { serve } from "inngest/express";
+import { inngest, functions } from "./inngest/index.js"
 
 const app = express();
 
@@ -20,6 +23,8 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/api/auth', authRouter);
 app.use('/api/products', productRouter);
 app.use('/api/upload', uploadRouter);
+app.use('/api/orders', orderRouter);
+app.use("/api/inngest", serve({ client: inngest, functions }));
 
 // error handling
 app.use((error: any, req: Request, res: Response, next: NextFunction) => {
