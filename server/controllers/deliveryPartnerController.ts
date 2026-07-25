@@ -128,9 +128,55 @@ export const cancelDelivery = async (req: Request, res: Response) => {
 
     const updatedOrder = await prisma.order.update({
         where: {id: order!.id},
-        data: {status: "Cancelled", statusHistory: history};
+        data: {status: "Cancelled", statusHistory: history}
     });
 
     return res.json({order: updatedOrder, message: "Delivery cancelled"});
 }
 
+
+// Update order status
+// PUT /api/delivery/my-deliveries/:id/status
+export const updateDeliveryStatus = async (req: Request, res: Response) => {
+    const { status } = req.body;
+
+    const allowedStatuses = ["Packed", "Out for delivery"];
+
+    if(!allowedStatuses.includes(status)){
+        return res.status(400).json({message: "Invalid status update."})
+    }
+
+    const order = await prisma.order.findFirst({
+        where: {id: req.params.id as string, deliveryPartnerId: req.partner!.id}
+    });
+
+    const history = order!.statusHistory as any[];
+    history.push({status, note: `status updated to ${status}`, timestamp: new Date()});
+
+    const updatedOrder = await prisma.order.update({
+        where: {id: order!.id},
+        data: {status, statusHistory: history}
+    });
+
+    res.json({order: updatedOrder});
+}
+
+
+// Update live location
+// PUT /api/delivery/my-deliveries/:id/location
+export const updateLiveLocation = async (req: Request, res: Response) => {
+    const { lat, lng } = req.body;
+
+    const order = await prisma.order.findFirst({
+        where: {id: req.params.id as string, deliveryPartnerId: req.partner!.id,
+            status: {in: ["Assigned", "Packed", "Out for Delivery"]}
+        }
+    });
+
+     await prisma.order.update({
+        where: {id: order!.id},
+        data: {liveLocation: {lat, lng, updatedAt: new Date()}}
+     });
+
+     return res.json({success: true});
+}
