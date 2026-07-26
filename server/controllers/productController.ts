@@ -20,22 +20,25 @@ export const getFlashDeals = async (req: Request, res: Response) => {
 
 // GET /api/products
 export const getProducts = async (req: Request, res: Response) => {
-    const { category, search, minPrice, maxPrice,sort } = req.body;
+    const { category, search, minPrice, maxPrice, sort } = req.query;
 
     const where: any = {};
     if(category && category !== "all") where.category = category as string;
     if(search) where.name = { contains: search as string, mode: "insensitive"};
     if(minPrice || maxPrice){
+        where.price = {};
         if(minPrice) where.price.gte = Number(minPrice);
-        if(maxPrice) where.price.gte = Number(maxPrice);
+        if(maxPrice) where.price.lte = Number(maxPrice);
     }
     
     const orderBy: any = {};
     if(sort){
         if(sort === "price-low") orderBy.price = "asc";
         else if(sort === "price-high") orderBy.price = "desc";
+        else if (sort === "rating") orderBy.rating = "desc";
+        else if (sort === "name") orderBy.name = "asc";
+        else orderBy.createdAt = "desc"
     }
-
     const products = await prisma.product.findMany({where, orderBy});
 
     const productsWithDiscount = products.map((p: any)=>{
