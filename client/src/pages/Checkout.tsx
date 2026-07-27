@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-import { dummyAddressData } from "../assets/assets";
 import type { Address } from "../types";
 import {
   ArrowLeft,
@@ -13,12 +12,15 @@ import {
 import CheckoutAddress from "../components/Checkout/CheckoutAddress";
 import CheckoutPayment from "../components/Checkout/CheckoutPayment";
 import CheckoutReview from "../components/Checkout/CheckoutReview";
+import api from "../config/api";
+import toast from "react-hot-toast";
+import { useAuth } from "../context/AuthContext";
 
 const Checkout = () => {
-  const navigaten = useNavigate();
+  const navigate = useNavigate();
   const currency = import.meta.env.VITE_CURRENCY_SYMBOL || "$";
-  const { items, cartTotal } = useCart();
-  const { user } = { user: { addresses: dummyAddressData } };
+  const { items, cartTotal, clearCart } = useCart();
+  const { user } = useAuth();
 
   const [step, setStep] = useState("address");
   const [loading, setLoading] = useState(false);
@@ -48,28 +50,40 @@ const Checkout = () => {
 
   const handlePlaceOrder = async () => {
     setLoading(true);
-    navigaten("/orders");
+    try {
+      const orderData = {
+        items: items.map((item) => ({
+          product: item.product.id,
+          quantity: item.quantity
+        })),
+        shippingAddress: address,
+        paymentMethod
+      }
+      console.log(typeof orderData.items[0].quantity);
+      const { data } = await api.post('/orders', orderData);
+      console.log(data);
+
+      if(data.url){
+        return window.location.href = data.url;
+      }
+      clearCart();
+      toast.success("Order placed successfully");
+      navigate(`/orders/${data.order.id}`)
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || error?.message);
+    } finally {
+      setLoading(false);
+    }
+   
   };
 
   // populate address from user's default address
   useEffect(() => {
-    if (user?.addresses.length > 0) {
-      const defaultAddr =
-        user.addresses.find((a) => a.isDefault) || user.addresses[0];
-
-      setAddress({
-        id: defaultAddr?.id,
-        label: defaultAddr?.label,
-        address: defaultAddr?.address,
-        city: defaultAddr?.city,
-        state: defaultAddr?.state,
-        zip: defaultAddr?.zip,
-        isDefault: defaultAddr?.isDefault,
-        lat: defaultAddr?.lat,
-        lng: defaultAddr?.lng,
-      });
-    }
-  }, []);
+    if (!user?.addresses?.length) return;
+    const defaultAddr = user.addresses.find((a) => a.isDefault) ?? user.addresses[0];
+    setAddress(defaultAddr);
+    
+  }, [user]);
 
   if (items.length === 0) {
     return (
@@ -82,7 +96,7 @@ const Checkout = () => {
             Add some products to checkout
           </p>
           <button
-            onClick={() => navigaten("/products")}
+            onClick={() => navigate("/products")}
             className="px-5 py-2.5 bg-app-green text-white text-sm font-medium rounded-xl hover:bg-app-green-light transition-colors"
           >
             Browse Products
@@ -96,7 +110,7 @@ const Checkout = () => {
     <div className="min-h-screen bg-app-cream">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <button
-          onClick={() => navigaten(-1)}
+          onClick={() => navigate(-1)}
           className="flex items-center gap-2 text-sm text-app-text-light hover:text-app-green transition-colors mb-6"
         >
           <ArrowLeft className="size-4" /> Back

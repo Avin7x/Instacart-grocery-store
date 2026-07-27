@@ -20,7 +20,7 @@ export const getAdminStats = async (req: Request, res: Response) => {
             include: 
             {
                 user: {select: {name: true, email:true}},
-                deliveryParnet: {select: {name: true, phone: true}}
+                deliveryPartner: {select: {name: true, phone: true}}
             }
         })
 

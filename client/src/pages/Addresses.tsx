@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { dummyAddressData } from "../assets/assets";
 import { MapPinIcon, PlusIcon } from "lucide-react";
 import type { Address } from "../types";
 import Loading from "../components/Loading";
@@ -11,7 +10,7 @@ import toast from "react-hot-toast";
 
 const Addresses = () => {
 
-  const { user, updateUser } = useAuth();
+  const { updateUser } = useAuth();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -73,10 +72,12 @@ const Addresses = () => {
   const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     try {
-      const coords = getLocation(3);
+      const coords = await getLocation(3);
+
       const paylod = {...form, ...coords};
+      
       if(editingId){
-        const { data } = await api.post(`/addresses/${editingId}`, paylod);
+        const { data } = await api.put(`/addresses/${editingId}`, paylod);
         setAddresses(data.addresses);
         updateUser({addresses: data.addresses});
         toast.success("Address updated!");
@@ -107,8 +108,8 @@ const Addresses = () => {
   };
 
   useEffect(() => {
-    setAddresses(dummyAddressData);
-    setTimeout(() => setLoading(false), 1000);
+    api.get('/addresses').then(({data})=>setAddresses(data.addresses)).catch((error: any) => toast.error(error?.response?.data?.message || error?.message)).finally(() => setTimeout(() => setLoading(false), 1000) );
+   
   }, []);
 
   return (

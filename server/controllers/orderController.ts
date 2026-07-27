@@ -6,6 +6,7 @@ import { inngest } from "../inngest/index.js";
 // Create order
 // POST /api/orders/
 export const createOrder = async (req: Request, res: Response) => {
+   console.log("createOrder called");
   const { items, shippingAddress, paymentMethod } = req.body;
 
   // check if order items are empty
@@ -62,15 +63,14 @@ export const createOrder = async (req: Request, res: Response) => {
     }
   });
 
-  const subtotal = items.reduce((sum: number, item: any) => sum + item.price * item.quantity , 0);
+  const subtotal = orderItems.reduce((sum: number, item: any) => sum + item.price * item.quantity , 0);
   const deliveryFee = subtotal > 20 ? 0: 1.99;
   const tax = Math.round((subtotal * 0.08 )* 100)/100;
   const total = Math.round((subtotal + deliveryFee + tax) * 100) / 100;
-
   const order = await prisma.order.create({
     data: {
         userId: req.user!.id,
-        items,
+        items: orderItems,
         shippingAddress,
         paymentMethod,
         subtotal,
