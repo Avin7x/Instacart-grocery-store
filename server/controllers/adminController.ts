@@ -57,14 +57,13 @@ export const createDeliveryPartner = async (req: Request, res: Response) => {
 
 // update delivery partner
 export const updateDeliveryPartner = async (req: Request, res: Response) => {
-    const { name, email, password, phone, vehicleType } = req.body;
+    const { name, phone, vehicleType, isActive } = req.body;
 
     const data: any = {};
     if(name) data.name = name;
-    if(email) data.email = email;
-    if(password) data.password = password;
     if(phone) data.phone = phone;
     if(vehicleType) data.vehicleType = vehicleType;
+    data.isActive = isActive;
 
     try {
         const partner = await prisma.deliveryPartner.update({

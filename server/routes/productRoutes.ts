@@ -7,8 +7,8 @@ const productRouter = express.Router();
 
 productRouter.get('/flash-deals', getFlashDeals);
 productRouter.get('/', getProducts);
-productRouter.get('/:id', getProductById);
 productRouter.post('/create', auth, admin, createProduct);
+productRouter.get('/:id', getProductById);
 productRouter.put('/:id', auth, admin, updateProduct);
 productRouter.delete('/:id', auth, admin, deleteProduct);
 

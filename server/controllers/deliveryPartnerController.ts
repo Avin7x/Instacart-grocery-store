@@ -13,6 +13,7 @@ const generateToken = (id: string) => {
 // login partner
 // POST /api/delivery/login
 export const loginPartner = async (req: Request, res: Response) => {
+    console.log("Delivery login hit");
     const { email, password } = req.body;
 
     if(!email || !password) {
@@ -39,6 +40,7 @@ export const loginPartner = async (req: Request, res: Response) => {
     const token = generateToken(partner.id);
     
     const {password: _, ...updatedPartner} = partner;
+    console.log(updatedPartner);
     
     return res.json({partner: updatedPartner, token});
 } 
