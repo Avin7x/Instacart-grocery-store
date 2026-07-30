@@ -16,14 +16,14 @@ const MyOrders = () => {
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const tabs = ["all", "places", "out for delivery", "Delivered"];
+  const tabs = ["all", "Placed", "Out for Delivery", "Delivered"];
 
   const { clearCart } = useCart();
 
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const params = activeTab !== "all" ? `status=${activeTab}`: "";
+      const params = activeTab !== "all" ? `?status=${activeTab}`: "";
       const { data } = await api.get(`/orders/${params}`);
       setOrders(data.orders);
     } catch (error: any) {

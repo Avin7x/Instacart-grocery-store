@@ -13,7 +13,6 @@ const generateToken = (id: string) => {
 // login partner
 // POST /api/delivery/login
 export const loginPartner = async (req: Request, res: Response) => {
-    console.log("Delivery login hit");
     const { email, password } = req.body;
 
     if(!email || !password) {
@@ -40,7 +39,6 @@ export const loginPartner = async (req: Request, res: Response) => {
     const token = generateToken(partner.id);
     
     const {password: _, ...updatedPartner} = partner;
-    console.log(updatedPartner);
     
     return res.json({partner: updatedPartner, token});
 } 
@@ -49,11 +47,10 @@ export const loginPartner = async (req: Request, res: Response) => {
 // GET /api/delivery/my-deliveries
 export const getMyDeliveries = async (req: Request, res: Response) => {
     const { status } = req.query;
-
     const where: any = {deliveryPartnerId: req.partner!.id};
     
     if(status === "active"){
-        where.status = {in: ["Assigned", "Packed", "Out for delivery"]};
+        where.status = {in: ["Assigned", "Packed", "Out for Delivery"]};
     } else if(status === "completed") {
         where.status = {in: ["Delivered", "Cancelled"]};
     }
@@ -142,7 +139,7 @@ export const cancelDelivery = async (req: Request, res: Response) => {
 export const updateDeliveryStatus = async (req: Request, res: Response) => {
     const { status } = req.body;
 
-    const allowedStatuses = ["Packed", "Out for delivery"];
+    const allowedStatuses = ["Packed", "Out for Delivery"];
 
     if(!allowedStatuses.includes(status)){
         return res.status(400).json({message: "Invalid status update."})

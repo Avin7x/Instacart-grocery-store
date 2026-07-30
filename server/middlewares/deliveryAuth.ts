@@ -15,14 +15,14 @@ const deliveryAuth = async (
         .status(401)
         .json({ message: "No token provided, authorization denied" });
     }
-
+    
     const token = authHeader.split(" ")[1];
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
       id: string;
       role: string;
     };
 
-    if (decoded.role !== "Delivery") {
+    if (decoded.role !== "delivery") {
       return res
         .status(403)
         .json({ message: "Access denied. Delivery partner only" });

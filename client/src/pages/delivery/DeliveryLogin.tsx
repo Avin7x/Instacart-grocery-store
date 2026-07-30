@@ -12,14 +12,14 @@ export default function DeliveryLogin() {
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.SubmitEvent) => {
+        e.preventDefault();
        setLoading(true);
        try {
         const { data } = await api.post('/delivery/login', {email, password});
-        console.log(data.partner);
         localStorage.setItem('delivery_token', data.token);
         localStorage.setItem('delivery_partner', JSON.stringify(data.partner));
         toast.success("Login succesful");
-        navigate('/delivery')
+        navigate('/delivery/')
        } catch (error: any) {
             toast.error(error.response?.data?.message || error?.message);
         } finally {

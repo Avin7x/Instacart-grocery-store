@@ -59,9 +59,7 @@ const Checkout = () => {
         shippingAddress: address,
         paymentMethod
       }
-      console.log(typeof orderData.items[0].quantity);
       const { data } = await api.post('/orders', orderData);
-      console.log(data);
 
       if(data.url){
         return window.location.href = data.url;
