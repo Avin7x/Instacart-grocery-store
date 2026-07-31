@@ -8,6 +8,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 export const stripeWebHook = async (request: Request, response: Response) => {
+    console.log("Stripe webhook hit");
     let event;
     if (endpointSecret) {
         // Get the signature sent by Stripe
@@ -18,6 +19,7 @@ export const stripeWebHook = async (request: Request, response: Response) => {
                 signature as string,
                 endpointSecret
             );
+            console.log("Event:", event.type);
         } catch (err: any) {
             console.log(`⚠️ Webhook signature verification failed.`, err.message);
             return response.sendStatus(400);
@@ -34,7 +36,7 @@ export const stripeWebHook = async (request: Request, response: Response) => {
                 const session = await stripe.checkout.sessions.list({
                     payment_intent: paymentIntentId
                 });
-                const orderId = session.data[0].metadata as any;
+                const orderId = (session.data[0].metadata as any).orderId;
 
                 // Mark Payment as Paid
                 const paidOrder = await prisma.order.update({
